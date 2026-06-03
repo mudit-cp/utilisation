@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plutus · BDE Utilization (Live)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#101b1a; --paper:#f4f1ea; --card:#fffdf8; --line:#e2dccd; --line2:#cfc8b6;
+  --muted:#6e695d; --accent:#0f6e56; --accent2:#1d9e75;
+  --good:#0f6e56; --good-bg:#e1f5ee; --watch:#854f0b; --watch-bg:#faeeda;
+  --bad:#a32d2d; --bad-bg:#fcebeb; --idle:#6e695d; --idle-bg:#ece8dd;
+  --disp:'Bricolage Grotesque',ui-sans-serif,system-ui,sans-serif;
+  --body:'Hanken Grotesk',ui-sans-serif,system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1240px;margin:0 auto;padding:20px 20px 70px}
+.tabnum{font-variant-numeric:tabular-nums}
+
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px;padding-bottom:16px;border-bottom:2px solid var(--ink)}
+.brand{display:flex;align-items:center;gap:11px}
+.logo{width:38px;height:38px;border-radius:10px;background:var(--ink);color:var(--paper);display:grid;place-items:center;font-family:var(--disp);font-weight:700;font-size:19px}
+.title h1{font-family:var(--disp);font-weight:700;font-size:27px;letter-spacing:-.02em;line-height:1.05}
+.title .sub{color:var(--muted);font-size:13px;margin-top:3px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--good);display:inline-block;position:relative}
+.dot.live::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:1px solid var(--good);opacity:.5;animation:pulse 1.8s ease-out infinite}
+.dot.stale{background:var(--watch)} .dot.err{background:var(--bad)}
+@keyframes pulse{0%{transform:scale(.6);opacity:.6}100%{transform:scale(1.9);opacity:0}}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+select,input{font-family:var(--body);font-size:13.5px;background:var(--card);border:1px solid var(--line2);border-radius:9px;padding:8px 11px;color:var(--ink)}
+input[type=search]{width:180px}
+button{font-family:var(--body);font-size:13px;background:var(--ink);color:var(--paper);border:none;border-radius:9px;padding:9px 14px;cursor:pointer;font-weight:500}
+button.ghost{background:transparent;color:var(--ink);border:1px solid var(--line2)}
+button:active{transform:scale(.98)}
+
+.banner{display:flex;flex-wrap:wrap;gap:18px;align-items:center;justify-content:space-between;margin-top:16px;background:var(--ink);color:var(--paper);border-radius:16px;padding:16px 22px}
+.banner .b{display:flex;flex-direction:column;gap:2px}
+.banner .b .l{font-size:12px;opacity:.7;letter-spacing:.02em}
+.banner .b .v{font-family:var(--disp);font-weight:600;font-size:23px}
+.banner .b .v small{font-size:13px;opacity:.65;font-weight:500}
+
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:12px;margin-top:14px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px 16px}
+.kpi .lab{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.kpi .val{font-family:var(--disp);font-weight:600;font-size:26px;letter-spacing:-.01em;margin:7px 0 9px}
+.bar{height:6px;border-radius:99px;background:#e9e3d5;overflow:hidden}
+.bar>i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .5s ease}
+.kpi .meta{font-size:11.5px;color:var(--muted);margin-top:6px}
+
+.section-h{font-family:var(--disp);font-weight:600;font-size:18px;margin:28px 0 12px;letter-spacing:-.01em;display:flex;align-items:center;gap:10px}
+.section-h .hint{font-weight:400;font-size:12.5px;color:var(--muted)}
+
+.teams{display:grid;grid-template-columns:repeat(auto-fit,minmax(232px,1fr));gap:11px}
+.team{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:13px 15px;cursor:pointer;transition:border-color .15s}
+.team:hover{border-color:var(--line2)} .team.sel{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
+.team .tn{font-weight:600;font-size:13.5px;margin-bottom:9px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.team .row{display:flex;justify-content:space-between;font-size:12.5px;padding:2.5px 0;color:var(--muted)}
+.team .row b{color:var(--ink);font-weight:600}
+.team .tgt{margin-top:8px;padding-top:8px;border-top:1px dashed var(--line2);font-size:11.5px;color:var(--muted)}
+.pill{font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:99px;white-space:nowrap}
+
+.tablewrap{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:860px}
+th{font-weight:600;color:var(--muted);font-size:11.5px;text-align:right;padding:13px 12px;cursor:pointer;white-space:nowrap;user-select:none}
+th:first-child,td:first-child{text-align:left;position:sticky;left:0;background:var(--card);z-index:1}
+th.active{color:var(--accent)} th .ar{font-size:9px;opacity:.7}
+td{text-align:right;padding:10px 12px;border-top:1px solid var(--line);white-space:nowrap}
+tbody tr:hover td{background:#fbf8f1}
+.who{font-weight:600} .tag{font-size:11px;color:var(--muted);font-weight:400}
+.status{font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px}
+.s-good{color:var(--good);background:var(--good-bg)} .s-watch{color:var(--watch);background:var(--watch-bg)}
+.s-bad{color:var(--bad);background:var(--bad-bg)} .s-idle{color:var(--idle);background:var(--idle-bg)}
+
+.settings{display:flex;flex-wrap:wrap;gap:13px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 15px;margin-top:14px;font-size:13px}
+.settings label{display:flex;align-items:center;gap:6px;color:var(--muted)} .settings input{width:62px}
+.ubars{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:4px 16px}
+.ubars.scroll{max-height:430px;overflow-y:auto}
+.ubar{display:grid;grid-template-columns:minmax(118px,210px) 1fr 56px;align-items:center;gap:13px;padding:9px 0;border-top:1px solid var(--line)}
+.ubar:first-child{border-top:none}
+.ulab{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ulab .usub{display:block;font-size:10.5px;font-weight:400;color:var(--muted)}
+.utrack{height:15px;border-radius:7px;background:#ece7da;overflow:hidden}
+.ufill{display:block;height:100%;border-radius:7px;transition:width .5s ease;min-width:2px}
+.ufill.f-good{background:var(--accent2)} .ufill.f-watch{background:#e0a23f}
+.ufill.f-bad{background:#d97b6c} .ufill.f-idle{background:#cbc5b6}
+.bar>i.f-good{background:var(--accent2)} .bar>i.f-watch{background:#e0a23f}
+.bar>i.f-bad{background:#d97b6c} .bar>i.f-idle{background:#cbc5b6}
+.uval{text-align:right;font-weight:600;font-size:13px;font-variant-numeric:tabular-nums}
+.note{font-size:12px;color:var(--muted);margin-top:14px;line-height:1.6}
+.fallback{display:none;background:var(--watch-bg);border:1px solid #e9d4a8;border-radius:12px;padding:13px 16px;margin-top:14px;font-size:12.5px;line-height:1.55}
+.fallback textarea{width:100%;min-height:80px;margin-top:8px;font-family:ui-monospace,monospace;font-size:11.5px;border:1px solid var(--line2);border-radius:8px;padding:8px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <div class="logo">P</div>
+      <div class="title">
+        <h1>BDE Utilization</h1>
+        <div class="sub">
+          <span><span class="dot live" id="dot"></span> <span id="liveTxt">Live</span></span>
+          · <span id="asof">—</span> · next refresh <span id="cd">—</span>
+        </div>
+      </div>
+    </div>
+    <div class="controls">
+      <input type="search" id="search" placeholder="Search rep…">
+      <label style="display:flex;align-items:center;gap:6px;color:var(--muted);font-size:13px">Day <select id="dateSel" title="Activity date"></select></label>
+      <select id="teamSel" title="Team"></select>
+      <button class="ghost" id="exportBtn">Export CSV</button>
+      <button id="refreshBtn">Refresh</button>
+    </div>
+  </header>
+
+  <div class="banner" id="banner"></div>
+  <section class="kpis" id="kpis"></section>
+
+  <div class="settings">
+    <span style="font-weight:600;color:var(--ink)">Occupancy model</span>
+    <label title="Net productive hours/BDE: 11–9 minus 2h break = 8h">Work hrs/day <input type="number" id="wHrs" value="8" step="0.5"></label>
+    <label title="Avg minutes per connected call">Connected min <input type="number" id="cMin" value="20"></label>
+    <label title="Avg minutes per DNP / call-back-later attempt">DNP/CB min <input type="number" id="dMin" value="2.5" step="0.5"></label>
+    <label title="Avg minutes per video call">VC min <input type="number" id="vMin" value="40"></label>
+    <span style="font-weight:600;color:var(--ink);margin-left:6px">Status</span>
+    <label title="Green at/above this utilization %">Green ≥ <input type="number" id="gThr" value="75"></label>
+    <label title="Amber at/above this utilization %">Amber ≥ <input type="number" id="aThr" value="50"></label>
+    <label style="margin-left:auto;color:var(--muted)">Working days (June) <input type="number" id="wdays" value="25"></label>
+  </div>
+
+  <h2 class="section-h">Team rollup <span class="hint">click a team to filter the leaderboard</span></h2>
+  <div class="teams" id="teams"></div>
+
+  <h2 class="section-h">Utilization — by team (TL) <span class="hint">team occupancy vs capacity (work hrs × reps)</span></h2>
+  <div class="ubars" id="tlBars"></div>
+
+  <h2 class="section-h">Utilization — by BDE <span class="hint">current view · idle reps shown at 0% · sorted high → low</span></h2>
+  <div class="ubars scroll" id="bdeBars"></div>
+
+  <h2 class="section-h">Rep leaderboard <span class="hint">· click a column to sort</span></h2>
+  <div class="tablewrap"><table id="tbl"></table></div>
+
+  <div class="fallback" id="fallback">
+    <b>Live feed not reachable from here.</b> If you opened this file directly inside a sandbox, the cross-origin call is blocked. Run it with the included <code>run-live.py</code> (recommended for the demo) or host it alongside Redash. Meanwhile, paste raw <code>results.json</code> to load current numbers:
+    <textarea id="pasteBox" placeholder="Paste results.json here…"></textarea>
+    <button id="loadPaste" style="margin-top:8px">Load pasted data</button>
+  </div>
+
+  <p class="note" id="note"></p>
+</div>
+
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
