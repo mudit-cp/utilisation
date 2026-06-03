@@ -109,12 +109,14 @@ On the dashboard, adjust:
 - OR use CORS proxy service like `https://cors-anywhere.herokuapp.com`
 - OR ask Redash to enable CORS headers
 
-### Railway.app (With Python Server)
+### Railway.app (With Python Server) - RECOMMENDED
 
 1. Push repository to GitHub
-2. Connect Railway to your repo
-3. Railway auto-detects `run-live.py` and starts it
-4. Access at `https://your-project.railway.app`
+2. Go to [Railway.app](https://railway.app)
+3. Click "New Project" → "Deploy from GitHub repo"
+4. Select your repository
+5. Railway auto-detects `run-live.py` and starts it
+6. Access at `https://your-project.railway.app`
 
 ### Heroku (Deprecated but still works)
 
